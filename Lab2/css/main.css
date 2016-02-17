@@ -1,0 +1,46 @@
+#seperateContent li{
+	display: inline-block;
+	list-style-type: none;
+	overflow: hidden;
+}
+
+#curr_weather{
+	margin-left: 10px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	margin-right: auto;
+	display: inline-block;
+	box-shadow: 3px 3px 5px black;
+	-moz-border-radius: 10px;
+    border-radius: 10px;
+    padding-right: 20px;
+}
+
+#five_day_forecast {
+	margin-left: 10px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	margin-right: auto;
+	
+	box-shadow: 3px 3px 5px black;
+	-moz-border-radius: 10px;
+    border-radius: 10px;
+    padding-right: 20px;
+}
+
+#five_day_forecast p{
+	text-align: left;
+	box-shadow: 1px 1px 2px black;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+.five_day_forecast{
+	background-color: white;
+	display: none;
+}
+
+.highlight
+{
+	display: inline-block;
+}
