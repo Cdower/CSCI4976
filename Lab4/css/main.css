@@ -1,0 +1,18 @@
+body {
+  background-color: lightgrey !important;
+}
+
+.content {
+  background-color: lightblue;
+  width: auto;
+  height: auto;
+  margin: 10%;
+  margin-top: 2%;
+  box-shadow: 3px 3px 5px black;
+  -moz-border-radius: 10px
+  border-radius: 10px;
+}
+
+.search {
+  margin: 10px;
+}
