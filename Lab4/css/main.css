@@ -23,7 +23,7 @@ body {
   -moz-border-radius: 10px;
   border-radius: 10px;
   width:95%;
-  margin:auto;
+  margin:15px;
 }
 
 .tweet li{
@@ -33,7 +33,7 @@ body {
 }
 
 .avatar {
-  margin:5pxn;
+  margin:5px;
   -moz-border-radius: 10px;
   border-radius: 10px;
 }
