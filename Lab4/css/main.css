@@ -6,7 +6,7 @@ body {
   background-color: lightblue;
   width: auto;
   height: auto;
-  margin: 10%;
+  margin: 5%;
   margin-top: 2%;
   box-shadow: 3px 3px 5px black;
   -moz-border-radius: 10px
@@ -15,4 +15,30 @@ body {
 
 .search {
   margin: 10px;
+}
+
+.tweet{
+  background-color: white;
+  box-shadow: 3px 3px 5px black;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+  width:95%;
+  margin:auto;
+}
+
+.tweet li{
+  display: inline;
+  list-style-type: none;
+  padding-right: 20px;
+}
+
+.avatar {
+  margin:5pxn;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+}
+
+.name{
+  font-size: larger;
+  font-weight: bold;;
 }

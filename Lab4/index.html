@@ -4,6 +4,7 @@
   <link rel="stylesheet" type="text/css" href="./css/main.css">
   <link href="./node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="./node_modules/angular/angular.js"></script>
+  <script src="./node_modules/angular-sanitize/angular-sanitize.js"></script>
   <script src="./js/main.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Lab4</title>
@@ -14,19 +15,19 @@
     <div id="filter">
       <p>
         <input ng-model="fullTextSearch" ng-model-instant placeholder="Search..." />
-        <button ng-click="fullTextSearch=''">Clear</button>
+        <button ng-click=search(fullTextSearch)>Search</button>
+        <button ng-click="search(fullTextSearch='')">Clear</button>
       </p>
-      <hr>
     </div>
     
     <div id="tweets">
-      <div class="tweet" ng-repeat="tweet in tweets | filter:fullTextSearch | filter:structuredSearch">
-        <img class="avatar" ng-src="{{tweet.profile_image_url}}"/>
-        <p class="date">{{tweet.created_at}}</p>
-        <p class="user">{{tweet.user.name}} 
-          <span class="userid">@{{tweet.user.screen_name}}</span></p>
-          <p class="text" ng-bind-html="tweet.text"> {{tweet.text}} <p>
-        </div>
+      <ul class="tweet" ng-repeat="tweet in tweets | filter:fullTextSearch | filter:structuredSearch">
+        <li><img class="avatar" ng-src="{{tweet.user.profile_image_url}}"/></li>
+        <li class="name">{{tweet.user.name}} 
+          <span class="userid">@{{tweet.user.screen_name}}</span>
+        </li>
+        <p class="text" ng-bind-html="tweet.text | tweetLinky"> {{tweet.text}} </p>
+        </ul>
       </div>
     </div>
 
