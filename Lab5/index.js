@@ -13,7 +13,7 @@ var client = new Twitter({
 var convention = 0;
 var searchTerm = 'president';
 var writeStream = fs.createWriteStream(searchTerm + '-' + convention + '-tweets.json', { flags : 'w'});
-writeStream.write("[");
+writeStream.write("[\n");
 var count = 0;
 var max = 100;
 var writeBool = true;
@@ -24,20 +24,20 @@ client.stream('statuses/filter', {track: searchTerm}, function(stream) {
 		if(count >= max){
 			writeBool = false;
 			console.log(count);
-			writeStream.write(JSON.stringify(tweet) + ']json');
+			writeStream.write(JSON.stringify(tweet) + '\n]json');
 			console.log("finished writing, closing stream");
 			writeStream.end();
 			console.log("Finished creating: " + searchTerm + convention + "-tweets.json");
 			convention++;
 			count = 0;
 			writeStream = fs.createWriteStream(searchTerm + convention + '-tweets.json', {flags : 'w'});
-			writeStream.write("[");
+			writeStream.write("[\n");
 			writeBool = true;
 		}
 		if(writeBool){
 			//console.log(tweet.text);
 			console.log(count);
-			writeStream.write(JSON.stringify(tweet)+',');
+			writeStream.write(JSON.stringify(tweet)+',\n');
 		}
 	});
 	stream.on('error', function(error){

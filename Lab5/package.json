@@ -9,6 +9,11 @@
   "author": "Chris Dower",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.13.4"
-  }
+    "express": "^4.13.4",
+    "twitter": "^1.2.5"
+  },
+  "repository": {
+  "type": "git",
+  "url": "git://github.com/Cdower/CSCI4976"
+}
 }
