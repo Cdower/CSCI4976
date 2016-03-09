@@ -1,4 +1,5 @@
-vat Twitter = require('twitter');
+var Twitter = require('twitter');
+var express = require('express');
 
 var client = new Twitter({
 	consumer_key: 'amgW24TB4ffSN5IPJFj5o1Ios',
