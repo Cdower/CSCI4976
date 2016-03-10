@@ -15,7 +15,7 @@ var searchTerm = 'president';
 var writeStream = fs.createWriteStream(searchTerm + '-' + convention + '-tweets.json', { flags : 'w'});
 writeStream.write("[");
 var count = 0;
-var max = 100;
+var max = 1000;
 var writeBool = true;
 var activeStream;
 client.stream('statuses/filter', {track: searchTerm}, function(stream) {
