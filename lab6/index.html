@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body{
+      background-color: lightgray !important;
+    }
+    .row {
+      margin-top: 10%;
+   }
+   .col-md-4{
+     background-color: white !important;
+     border-radius: 5px;
+     margin-left: 5%;
+     margin-right: 5%;
+     box-shadow: 10px 10px 5px;
+   }
+   #export-request{
+     margin-left: 5%;
+   }
+   #text{
+     font-weight: bold;
+     text-align: left;
+   }
+   #query{
+     text-align: left;
+   }
+  </style>
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+  <!--<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script> -->
+  <!--<script src="./js/main.js"></script>-->
+</head>
+<title>Lab 6</title>
+<body>
+  <div class='row container-fluid'>
+    <div class='col-md-4 col-md-offset-4'>
+      <h1 id='text'>Query</h1>
+      <form action='' id='query-form'>
+        <input id='query' autocomplete="off" type="text" name="name" value="President">
+          </br>
+          <input id='numTweets' type="number" name="numTweets" min=1 max=1000 value=1>
+            <button id=select>Load</button>
+          </input>
+        </input>
+
+
+      </br></br>
+      </form>
+      <form action='' id='export-form'>
+        <input type="radio" name="return-file" value='JSON' checked> JSON <br>
+        <input type='radio' name='return-file' value='CSV'> CSV
+        <button id='export-request'>Export</button>
+      </form>
+    </div>
+  </div>
+</body>
+<script>
+  $(document).ready(function () {
+    sessionStorage.setItem("query", $('#query').val());
+    sessionStorage.setItem("number", $('#numTweets').val());
+    $('#export-form').hide();
+  });
+
+  //var socket = io();
+
+  $('#query-form').submit(function(){
+    //store query
+    sessionStorage.setItem("query", $('#query').val());
+    sessionStorage.setItem("number", $('#numTweets').val());
+    console.log(sessionStorage.getItem("query"));
+    console.log(sessionStorage.getItem("number"));
+    //$('#export-form input').prop('disabled', false);
+    $.ajax({
+      url:'/query',
+      type: 'POST',
+      contentType: 'application/json; charset=utf-8',
+      dataType: 'json',
+      data: JSON.stringify({"query":sessionStorage.getItem("query"), "number":sessionStorage.getItem("number")})
+    }).done(function(data, textStatus, jqXHR){
+      console.log("Success: " + data);
+      $('#export-form').show();
+    }).fail(function(jqXHR, textStatus, errorThrown){
+      console.log("Error: " + errorThrown);
+    }).always(function(){
+      console.log("Done!");
+    });
+    $('#export-form').show();
+    return false;
+  });
+
+  var radios = document.getElementsByName('return-file');
+  $('#export-form').submit(function () {
+    sessionStorage.setItem("fileType", $('input[name="return-file"]:checked').val());
+    console.log(sessionStorage.getItem("fileType") );
+    console.log($('input[name="return-file"]:checked').val() === "CSV");
+    if($('input[name="return-file"]:checked').val() === "JSON"){
+      $.get('/pullJSON');
+      window.location.replace('pullJSON');
+    }
+    if(sessionStorage.getItem("fileType") === 'CSV'){
+      $.get('pullCSV').done(function(){
+        console.log("csv get request complete");
+        //window.location.replace("/pullCSV");
+      });
+      window.location.replace("/pullCSV");
+    }
+
+    return false;
+  });
+</script>
+
+
+</html>

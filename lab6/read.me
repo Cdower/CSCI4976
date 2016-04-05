@@ -1,0 +1,7 @@
+I used body parser to allow node to parse json files and send them to the html page.
+Express and node were used to host the server that sends the user the webpage.
+json-2-csv was used to copy the parsed twitter json files to csv.
+twitter was used to communicate with the twitter servers and pull json files from the twitter server.
+I chose to parse the json file to csv on the server instead of on the client side because it seemed more efficient for data transmission although doing it client side would have made it easier to show a loading bar.
+The one thing that I would like to figure out how to do is add a progress bar to the web page while waiting for the GET and POST requests, and for while the sever is building the list of tweets because right now
+  I have to watch for completion on the node server before being able to successfully download a json or csv file.
