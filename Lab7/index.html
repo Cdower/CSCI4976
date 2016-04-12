@@ -83,7 +83,39 @@
 
   });
 
-  //var socket = io();
+  $("#xmlFromDB").click(function() {
+    $.get("/mongoXML", function(data){
+      console.log(data);
+    });
+    return false;
+  })
+
+  $("#readDB").click(function() {
+    $.get("/mongoJSON", function(data) {
+      console.log(data);
+    });
+    return false;
+  })
+
+  $("#DBwrite").click(function(){
+    sessionStorage.setItem("query", $('#query').val());
+    sessionStorage.setItem("number", $('#numTweets').val());
+    $.ajax({
+      url:'/twitterToMongo',
+      type: 'POST',
+      contentType: 'application/json; charset=utf-8',
+      dataType: 'json',
+      data: JSON.stringify({"query":sessionStorage.getItem("query"), "number":sessionStorage.getItem("number")})
+    }).done(function(data, textStatus, jqXHR){
+      console.log("Success: " + data);
+      $('#export-form').show();
+    }).fail(function(jqXHR, textStatus, errorThrown){
+      console.log("Error: " + errorThrown);
+    }).always(function(){
+      console.log("Done!");
+    });
+    return false;
+  })
 
   $('#query-form').submit(function(){
     //store query

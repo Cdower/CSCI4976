@@ -5,10 +5,10 @@ var fs = require('fs'); //write files
 var converter = require('json-2-csv');
 var MongoClient = require('mongodb').MongoClient;
 var assert = require('assert');
-var app = express();
-var url = 'mongodb://localhost:27017';
+var app = express()
 //var http = require('http').Server(app);
 
+var url = 'mongodb://localhost:27017/twitter';
 var client = new Twitter({
 	consumer_key: 'amgW24TB4ffSN5IPJFj5o1Ios',
 	consumer_secret: 'uptBeEV0UJP0eiE0blPnX8YZX7kQ7jdyflWEUtW1DLKqL9zxc3',
@@ -16,16 +16,17 @@ var client = new Twitter({
 	access_token_secret: 'jrR7IKRBpIopRrl0onE0e5SHzQcFSiStwKko5pl6gZyl8'
 });
 
-MongoClient.connect(url, function(err, db) {
-  assert.equal(null, err);
-  console.log("Connected correctly to server.");
-  db.close();
-});
+var insertJSON = function functionName(db, json, callback) {
+		db.collection("tweets").insert(json, function(err, doc){
+			if(err) throw err;
+		});
+};
+//query.toLowerCase()
 
 var queryComplete, latestQuery, latestNum;
 var customTweet;
 
-function collectTweets(query, number){
+function collectTweets(query, number, addtoDB){
   var convention = 0;
   var writeStream = fs.createWriteStream(query + '-' + number + '-tweets.json', { flags : 'w'});
   writeStream.write("[");
@@ -42,6 +43,10 @@ function collectTweets(query, number){
         console.log("Finished Collecting Tweets");
         stream.destroy();
 				queryComplete = true;
+				MongoClient.connect(url, function(err, db) {
+					assert.equal(null, err);
+					db.close();
+				});
 				console.log("queryComplete: " + queryComplete);
         return;
   		}
@@ -69,6 +74,14 @@ function collectTweets(query, number){
 					}
 				}
 				if(customTweet){
+					////////////
+					if(addtoDB){
+						MongoClient.connect(url, function(err, db) {
+							assert.equal(null, err);
+							insertJSON(db, customTweet);
+						});
+					}
+					///////////
 	  			writeStream.write(JSON.stringify(customTweet) + ',');
 				}else{
 					writeStream.write(JSON.stringify(tweet) + ',');
@@ -88,15 +101,36 @@ app.get('/', function (req, res) {
   res.sendFile( __dirname + '/index.html');
 });
 
+app.get('/mongoJSON', function(req, res) {
+	//Send data from mongo db twitter collection tweets
+	MongoClient(url, function(err, db) {
+		assert.equal(null, err);
+		var collection = db.collection('tweets');
+
+
+		db.close();
+	});
+	//res.send(json);
+})
+
 app.post('/query', function (req, res) {
   queryComplete = false;
 	latestQuery = req.body.query;
 	latestNum = req.body.number;
   console.log(req.body.query);
   console.log(req.body.number);
-  collectTweets(req.body.query, req.body.number);
-	queryComplete = true;
+  collectTweets(latestQuery, latestNum, false);
+	//queryComplete = true;
 	console.log("queryComplete: " + queryComplete);
+	res.send(queryComplete);
+});
+
+app.post('/twitterToMongo', function(req, res) {
+	queryComplete = false;
+	latestQuery = req.body.query;
+	latestNum = req.body.number;
+	collectTweets(latestQuery, latestNum, true);
+	console.log("queryComplete for mongo: " + queryComplete);
 	res.send(queryComplete);
 });
 
