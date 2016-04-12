@@ -103,21 +103,30 @@ app.get('/', function (req, res) {
 
 app.get('/mongoJSON', function(req, res) {
 	//Send data from mongo db twitter collection tweets
-	MongoClient(url, function(err, db) {
+	MongoClient.connect(url, function(err, db) {
 		assert.equal(null, err);
 		var collection = db.collection('tweets');
-		collection.find();.toArrray(function(err, result) {
+		collection.find().toArray(function(err, result) {
 			if(err){
 				console.log(err);
+				res.send(err);
+				db.close();
 			}else if(result.length){
-				res.send("result");
+				res.send(result);
 				console.log("Found: ", result);
+				db.close();
 			}else{
+				res.send("{[]}");
 				console.log("Search Failed");
+				db.close();
 			}
 		})
-		db.close();
 	});
+})
+
+app.get("/mongoXML", function(req, res) {
+
+	res.send("success");
 })
 
 app.post('/query', function (req, res) {
