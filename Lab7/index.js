@@ -106,11 +106,18 @@ app.get('/mongoJSON', function(req, res) {
 	MongoClient(url, function(err, db) {
 		assert.equal(null, err);
 		var collection = db.collection('tweets');
-
-
+		collection.find();.toArrray(function(err, result) {
+			if(err){
+				console.log(err);
+			}else if(result.length){
+				res.send("result");
+				console.log("Found: ", result);
+			}else{
+				console.log("Search Failed");
+			}
+		})
 		db.close();
 	});
-	//res.send(json);
 })
 
 app.post('/query', function (req, res) {
