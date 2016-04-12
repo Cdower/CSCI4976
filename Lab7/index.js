@@ -5,6 +5,7 @@ var fs = require('fs'); //write files
 var converter = require('json-2-csv');
 var MongoClient = require('mongodb').MongoClient;
 var assert = require('assert');
+var js2xmlparser = require('js2xmlparser');
 var app = express()
 //var http = require('http').Server(app);
 
@@ -124,9 +125,22 @@ app.get('/mongoJSON', function(req, res) {
 	});
 })
 
-app.get("/mongoXML", function(req, res) {
-
-	res.send("success");
+app.post("/mongoXML", function(req, res) {
+	var file = req.body.query + '-' + req.body.number + '-tweets.xml'
+	var writeStream = fs.createWriteStream(file, { flags : 'w'});
+	MongoClient.connect(url, function(err, db) {
+		assert.equal(null, err);
+		var collection = db.collection('tweets');
+		var cursor = collection.find();
+		cursor.each(function(err, tweet) {
+			if(err){ console.log(err);}
+			else{
+				writeStream.write(js2xmlparser("tweet", tweets));
+			}
+		});
+		writeStream.end();
+	})
+	res.download(file);
 })
 
 app.post('/query', function (req, res) {
