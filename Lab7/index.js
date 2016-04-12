@@ -9,6 +9,7 @@ var js2xmlparser = require('js2xmlparser');
 var app = express()
 //var http = require('http').Server(app);
 
+var xmlFile;
 var url = 'mongodb://localhost:27017/twitter';
 var client = new Twitter({
 	consumer_key: 'amgW24TB4ffSN5IPJFj5o1Ios',
@@ -111,23 +112,23 @@ app.get('/mongoJSON', function(req, res) {
 			if(err){
 				console.log(err);
 				res.send(err);
-				db.close();
+				//db.close();
 			}else if(result.length){
 				res.send(result);
 				console.log("Found: ", result);
-				db.close();
+				//db.close();
 			}else{
 				res.send("{[]}");
 				console.log("Search Failed");
-				db.close();
+				//db.close();
 			}
 		})
 	});
 })
 
 app.post("/mongoXML", function(req, res) {
-	var file = req.body.query + '-' + req.body.number + '-tweets.xml'
-	var writeStream = fs.createWriteStream(file, { flags : 'w'});
+	xmlFile = req.body.query + '-' + req.body.number + '-tweets.xml'
+	var xmlStream = fs.createWriteStream(xmlFile, { flags : 'w'});
 	MongoClient.connect(url, function(err, db) {
 		assert.equal(null, err);
 		var collection = db.collection('tweets');
@@ -135,12 +136,20 @@ app.post("/mongoXML", function(req, res) {
 		cursor.each(function(err, tweet) {
 			if(err){ console.log(err);}
 			else{
-				writeStream.write(js2xmlparser("tweet", tweets));
+				if(tweet != null){
+					xmlStream.write(js2xmlparser("tweet", tweet));
+				}else{
+					xmlStream.end();
+					console.log("Sending: ", xmlFile);
+					res.download(xmlFile);
+				}
 			}
-		});
-		writeStream.end();
+		})
 	})
-	res.download(file);
+})
+
+app.get('/mongoXML', function(req, res) {
+	res.download(xmlFile);
 })
 
 app.post('/query', function (req, res) {

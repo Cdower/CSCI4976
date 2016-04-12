@@ -84,10 +84,9 @@
       data:JSON.stringify({"query":sessionStorage.getItem("query"), "number":sessionStorage.getItem("number")})
     }).done(function(data, textStatus, jqXHR) {
       console.log(data);
-      window.location.replace('mongoXML');
-    })
-
-    return false;
+    }).always(function() {
+      window.location.replace('/mongoXML');
+    });
   })
 
   $("#readDB").click(function() {
@@ -114,7 +113,7 @@
     }).always(function(){
       console.log("Done!");
     });
-    return false;
+    return true;
   })
 
   $('#query-form').submit(function(){
