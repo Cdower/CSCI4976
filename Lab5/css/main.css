@@ -1,0 +1,33 @@
+.center {
+    margin: auto;
+    width: 90%;
+    padding: 10px;
+}
+
+.content li{
+	display: inline;
+	list-style-type: none;
+	padding-right: 20px;
+}
+
+.profileImg {
+	margin:auto;
+	-moz-border-radius: 10px;
+    border-radius: 10px;
+}
+
+.name{
+	font-size: larger;
+	font-weight: bold;;
+}
+
+.tweet{
+	display: none;
+}
+
+.post{
+	box-shadow: 3px 3px 5px black;
+	-moz-border-radius: 10px;
+    border-radius: 10px;
+
+}

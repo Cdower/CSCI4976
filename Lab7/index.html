@@ -8,7 +8,38 @@
     }
     .row {
       margin-top: 10%;
-   }
+    }
+   .center {
+      margin: auto;
+      width: 90%;
+      padding: 10px;
+    }
+    .content li{
+    	display: inline;
+    	list-style-type: none;
+    	padding-right: 20px;
+    }
+
+    .profileImg {
+    	margin:auto;
+    	-moz-border-radius: 10px;
+      border-radius: 10px;
+    }
+
+    .name{
+    	font-size: larger;
+    	font-weight: bold;;
+    }
+
+    .tweet{
+    	display: none;
+    }
+
+    .post{
+    	box-shadow: 3px 3px 5px black;
+    	-moz-border-radius: 10px;
+      border-radius: 10px;
+    }
    .col-md-4{
      background-color: white !important;
      border-radius: 5px;
@@ -65,25 +96,73 @@
     </div>
 
   </div>
+  <div class='row container-fluid' id="tweets">
+  </div>
 </body>
 <script>
   $(document).ready(function () {
     sessionStorage.setItem("query", $('#query').val());
     sessionStorage.setItem("number", $('#numTweets').val());
     $('#export-form').hide();
-    $("#DBwrite").click(function(){
-      alert("button");
-    });
-    $("#readDB").click(function(){
-      alert("button");
-    });
-    $("#xmlFromDB").click(function(){
-      alert("button");
-    });
-
   });
 
-  //var socket = io();
+  $("#xmlFromDB").click(function() {
+    sessionStorage.setItem("query", $('#query').val());
+    sessionStorage.setItem("number", $('#numTweets').val());
+    $.post({
+      url:'/mongoXML',
+      type:'POST',
+      contentType:'application/json; charset=utf-8',
+      dataType: 'json',
+      data:JSON.stringify({"query":sessionStorage.getItem("query"), "number":sessionStorage.getItem("number")})
+    }).done(function(data, textStatus, jqXHR) {
+      console.log(data);
+    }).always(function() {
+      window.location.replace('/mongoXML');
+    });
+  })
+
+  function showTweet (tweet) {
+	//console.log(tweet["user"]);
+	$("#tweets").prepend('<div class="post col-md-4 col-md-offset-4">' + '<ul class=content>' +
+		'<li><img class=profileImg src="'+tweet["user_profile_image_url"]+'"></img></li>' +
+		'<li class=name>'+ tweet["user_name"] +'</li>' +
+		'<li> <a href=' + tweet["user_url"] + '>'+ '@' + tweet["user_screen_name"] +'</a></li>' +
+		'<li><div>'+ tweet["text"] +'</div></li>' +
+		'</ul></div>');
+}
+
+  $("#readDB").click(function() {
+    $.get("/mongoJSON", function(data) {
+      console.log(data);
+      $("#tweets").empty();
+      var num = data.length;
+      for(var i = 0; i<num;i++){
+        showTweet(data[i]);
+      }
+    });
+    return false;
+  })
+
+  $("#DBwrite").click(function(){
+    sessionStorage.setItem("query", $('#query').val());
+    sessionStorage.setItem("number", $('#numTweets').val());
+    $.ajax({
+      url:'/twitterToMongo',
+      type: 'POST',
+      contentType: 'application/json; charset=utf-8',
+      dataType: 'json',
+      data: JSON.stringify({"query":sessionStorage.getItem("query"), "number":sessionStorage.getItem("number")})
+    }).done(function(data, textStatus, jqXHR){
+      console.log("Success: " + data);
+      $('#export-form').show();
+    }).fail(function(jqXHR, textStatus, errorThrown){
+      console.log("Error: " + errorThrown);
+    }).always(function(){
+      console.log("Done!");
+    });
+    return true;
+  })
 
   $('#query-form').submit(function(){
     //store query

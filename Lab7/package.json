@@ -11,6 +11,7 @@
   "dependencies": {
     "body-parser": "^1.15.0",
     "express": "^4.13.4",
+    "js2xmlparser": "^1.0.0",
     "json-2-csv": "^2.0.18",
     "twitter": "^1.2.5"
   }
