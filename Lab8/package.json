@@ -1,0 +1,14 @@
+{
+  "name": "lab8",
+  "version": "1.0.0",
+  "description": "dbpedia",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Chris Dower",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.13.4"
+  }
+}
