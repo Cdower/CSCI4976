@@ -4,6 +4,14 @@
     <title>Lab 8</title>
   </head>
   <body>
-    
+    <form id='SPARQL_form' action="">
+      <input id='searchTerm' autocomplete="off" type="text" name="Search" value="">
+      <button id='searchButton'type="button" name="button"></button>
+    </form>
   </body>
+  <script type="text/javascript">
+    $('#searcButton').click(function(){
+      sessionStorage.setItem("query", $('#searchTerm').val());
+    });
+  </script>
 </html
