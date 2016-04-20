@@ -12,6 +12,9 @@
       <input id='searchTerm' autocomplete="off" type="text" name="Search" value="">
       <button id='searchButton'type="button" name="button"></button>
     </form>
+    <div id='queryResults' style="text-align: center;">
+
+    </div>
   </body>
   <script type="text/javascript">
     $('#searchButton').click(function(){
@@ -21,7 +24,7 @@
         type: 'POST',
         contentType: 'application/json; charset=utf-8',
         dataType: 'json',
-        data: JSON.stringify({"query":sessionStorage.getItem("query")})
+        data: JSON.stringify({"query":sessionStorage.getItem("query")}) 
       }).done(function(data, textStatus, jqXHR){
         console.log("Success: " + data);
       }).fail(function(jqXHR, textStatus, errorThrown){
