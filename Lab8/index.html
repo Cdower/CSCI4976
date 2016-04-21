@@ -8,29 +8,43 @@
     <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
   </head>
   <body>
-    <form id='SPARQL_form' action="">
-      <input id='searchTerm' autocomplete="off" type="text" name="Search" value="">
-      <button id='searchButton'type="button" name="button"></button>
-    </form>
-    <div id='queryResults' style="text-align: center;">
-
+    <div id='SPARQL_form' style='text-align: center;'>
+      <input id='searchTerm' autocomplete="off" type="text" value="">
+      <button id='queryButton'>Search</button>
     </div>
+    <ul id='queryResults' style="text-align: center;">
+
+    </ul>
   </body>
   <script type="text/javascript">
-    $('#searchButton').click(function(){
-      sessionStorage.setItem("query", $('#searchTerm').val());
+    $('#queryButton').click(function() {
+      console.log( $('#searchTerm').val());
+      sessionStorage.setItem( "query", $('#searchTerm').val() );
       $.ajax({
         url:'/queryDBPedia',
         type: 'POST',
         contentType: 'application/json; charset=utf-8',
         dataType: 'json',
-        data: JSON.stringify({"query":sessionStorage.getItem("query")}) 
+        data: JSON.stringify( { "query": $('#searchTerm').val() } )
       }).done(function(data, textStatus, jqXHR){
-        console.log("Success: " + data);
+        console.log(data);
+        addResult(data);
+
       }).fail(function(jqXHR, textStatus, errorThrown){
         console.log("Error: " + errorThrown);
       }).always(function(){
         console.log("Done!");
+      });
+      //window.location.replace("/queryDBPedia");
     });
+
+    function addResult(res) {
+      $('#queryResults').empty();
+      var headVars = res.head.vars;
+      for(var i=0; i<res.results.bindings.length; i++){
+        $('#queryResults').append("<li class=result> <span>"+res.results.bindings[i][headVars[0]].type + ": "+res.results.bindings[i][headVars[0]].value +"</span></li>");
+      }
+    }
+    //function
   </script>
 </html
