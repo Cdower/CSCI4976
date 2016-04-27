@@ -13,7 +13,8 @@
    .toRemove{ box-shadow: 3px 3px 5px black; -moz-border-radius: 10px; border-radius: 10px; margin-top: 1%; }
    .post{ box-shadow: 3px 3px 5px black; -moz-border-radius: 10px; border-radius: 10px; margin-top: 1%; }
    .col-md-4{ background-color: white !important; border-radius: 5px; margin-left: 5%; margin-right: 5%; box-shadow: 10px 10px 5px; }
-   #DBButtons{ margin: auto; text-align: center; }
+   #waitMessage { margin-left: 45%; margin-bottom: 1%; text-align: center;}
+   #DBButtons { margin: auto; text-align: center; }
    #export-request{ margin-left: 5%; }
    #text{ font-weight: bold; text-align: left; }
    #query{ text-align: left; }
@@ -36,7 +37,7 @@
         </input>
       </br></br>
       </form>
-      <p id='waitMessage'>Please wait while we gather your data</p>
+      <img src="resources/721.gif" id='waitMessage'>
       <form action='' id='export-form'>
         <input type="radio" name="return-file" id='JSON' value='JSON' checked> JSON <br>
         <input type='radio' name='return-file' id='CSV' value='CSV'> CSV <br>
@@ -49,7 +50,7 @@
         <button type='button' id='newQuery'> New Seach </button>
         <!-- <button type="button" id="xmlFromDB">Download XML</button> -->
       </div>
-    </br>
+    <br>
     </div>
   </div>
   <div class='row container-fluid' id="tweets"/>
