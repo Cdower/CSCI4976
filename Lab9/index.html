@@ -118,6 +118,7 @@
     $('#export-form').hide();
     $('#waitMessage').hide();
     $('#query-form').show();
+    $('#newQuery').hide();
   });
 
   ///Send request to server for xml file of tweets in DB
@@ -134,7 +135,7 @@
         data:JSON.stringify({"query":sessionStorage.getItem("query"), "number":sessionStorage.getItem("number")}),
         success: function(xml){
           console.log("donezo");
-          window.location.replace('/mongoXML');
+          //window.location.replace('/mongoXML');
           $('#export-form').show(); //bring it back
           $('#waitMessage').hide(); //hide it again
           $('#newQuery').show();//unhide button to change query

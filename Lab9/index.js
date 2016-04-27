@@ -30,8 +30,8 @@ var customTweet;
 
 function collectTweets(query, number, addtoDB){
   var convention = 0;
-  var writeStream = fs.createWriteStream(query + '-' + number + '-tweets.json', { flags : 'w'});
-  writeStream.write("[");
+  //var writeStream = fs.createWriteStream(query + '-' + number + '-tweets.json', { flags : 'w'});
+  //writeStream.write("[");
   var count = 0;
   var writeBool = true;
   var activeStream;
@@ -40,8 +40,8 @@ function collectTweets(query, number, addtoDB){
   		count++;
   		if(count > number){
   			writeBool = false;
-  			writeStream.write(']');
-  			writeStream.end();
+  			//writeStream.write(']');
+  			//writeStream.end();
         console.log("Finished Collecting Tweets");
         stream.destroy();
 				queryComplete = true;
@@ -54,13 +54,14 @@ function collectTweets(query, number, addtoDB){
   		if(writeBool){
 				if(tweet){
 					customTweet = {
+						"query":query,
 						"created_at":tweet["created_at"],
 						"id":tweet['id'],
-						"text":"'"+tweet['text']+"'",
+						"text":tweet['text'],
 						'user_id':tweet['user']['id'],
-						'user_name':"'"+tweet['user']['name']+"'",
-						'user_screen_name':"'"+tweet['user']['screen_name']+"'",
-						'user_location':"'"+tweet['user']['location']+"'",
+						'user_name':tweet['user']['name'],
+						'user_screen_name':tweet['user']['screen_name'],
+						'user_location':tweet['user']['location'],
 						"user_followers_count":tweet['user']['followers_count'],
 						"user_friends_count":tweet['user']['friends_count'],
 						"user_created_at":tweet['user']['created_at'],
@@ -73,15 +74,11 @@ function collectTweets(query, number, addtoDB){
 					}
 				}
 				if(customTweet){
-					if(addtoDB){
-						MongoClient.connect(url, function(err, db) {
-							assert.equal(null, err);
-							insertJSON(db, customTweet);
-						});
-					}
-	  			writeStream.write(JSON.stringify(customTweet) + ',');
-				}else{
-					writeStream.write(JSON.stringify(tweet) + ',');
+					MongoClient.connect(url, function(err, db) {
+						assert.equal(null, err);
+						insertJSON(db, customTweet);
+					});
+  			//writeStream.write(JSON.stringify(customTweet) + ',');
 				}
   		}
   	});
@@ -107,15 +104,11 @@ app.get('/rawMongoJSON', function(req, res) {
 			if(err){
 				console.log(err);
 				res.send(err);
-				//db.close();
 			}else if(result.length){
 				res.send(result);
-				//console.log("Found: ", result);
-				//db.close();
 			}else{
 				res.send("{[]}");
 				console.log("Search Failed");
-				//db.close();
 			}
 		})
 	});
@@ -134,7 +127,7 @@ app.post('/mongoXML', function(req, res) {
 	MongoClient.connect(url, function(err, db) {
 		assert.equal(null, err);
 		var collection = db.collection('tweets');
-		var cursor = collection.find().limit(Number(latestNum));
+		var cursor = collection.find( { 'query':latestQuery } ).limit(Number(latestNum));
 		var tweets = {};
 		cursor.each(function(err, data) {
 			if(err){ console.log(err);}
@@ -142,7 +135,8 @@ app.post('/mongoXML', function(req, res) {
 				if(data != null){
 					var id = data["_id"];
 					delete data["_id"];
-					tweets["tweet"+id] = data;
+					delete data['query'];
+					tweets["tweet_"+id] = data;
 				}else {
 					var options = {
 						arrayMap: {
@@ -182,42 +176,89 @@ if(queryComplete){
 }
 
 app.get('/pullJSON', function (req, res) {
-	if(queryComplete){
-		var file = latestQuery + '-' + latestNum + '-tweets.json';
-		//__dirname + '/' +
-		res.download(file);
-	}else{
-		console.log("query incomplete");
+	var jsonFile = latestQuery+'-'+latestNum+'-tweets.json';
+	var path = __dirname + '\\' + jsonFile;
+	var jsonStream;
+	try{
+		fs.accessSync(jsonFile, fs.F_OK);
+		fs.unlinkSync(jsonFile);
+		jsonStream = fs.createWriteStream(jsonFile, { flags : 'w' });
+	} catch(e){
+		jsonStream = fs.createWriteStream(jsonFile, { flags : 'w' });
 	}
-  //res.send("Hello World!");
+	var __queryCheck = setInterval(function(){
+		if(queryComplete){
+			clearInterval(__queryCheck);
+			MongoClient.connect(url, function(err, db){
+				assert.equal(null, err);
+				var collection = db.collection('tweets');
+				var cursor = collection.find( { 'query':latestQuery } ).limit(Number(latestNum));
+				var tweets = {};
+				cursor.each(function(err, data){
+					if(err) console.log(err);
+					else{
+						if(data != null){
+							var id = data['_id'];
+							delete data['_id'];
+							delete data['query'];
+							tweets['tweet_'+id] = data;
+						}else{
+							jsonStream.write(JSON.stringify(tweets));
+							jsonStream.end();
+							res.download(jsonFile);
+						}
+					}
+				});
+			});
+		}
+	}, 100);
 });
 
 app.get('/pullCSV', function(req, res){
 	var csvFile = latestQuery + '-' + latestNum + '-tweets.csv';
-	var path = __dirname + '/' + csvFile;
+	var path = __dirname + '\\' + csvFile;
+	console.log(latestNum, latestQuery, csvFile, path);
+	var csvStream;
 	try{
-		fs.accessSync(path, fs.F_OK);
+		fs.accessSync(xmlFile, fs.F_OK);
+	 	fs.unlinkSync(xmlFile);
 		console.log(csvFile + " exists");
-		csvStream = fs.createWriteStream(csvFile, { flags:'w' });
+		csvStream = fs.createWriteStream(path, { flags : 'w' });
 	}catch(e){
-		var __queryCheck = setInterval(function(){
-			if(queryComplete){
-				clearInterval(__queryCheck);
-				csvStream = fs.createWriteStream(csvFile, { flags:'w' });
-				delete data["_id"];
-				converter.json2csv(customTweet,function (err, csv) {
-			  	if (err) console.log(err);
-					fs.writeFile(fileName, csv, function(err) {
-				    if (err) throw err;
-						else {
-							console.log('file saved');
-							res.download(path);
-						}
-				  });
-				});
-			}
-		}, 100);
+		console.log(e);
+		csvStream = fs.createWriteStream(path, { flags : 'w' });
 	}
+	//csvStream = fs.createWriteStream(path, { flags : 'w' });
+	var __queryCheck = setInterval(function(){
+		if(queryComplete){
+			clearInterval(__queryCheck);
+			csvStream = fs.createWriteStream(csvFile, { flags:'w' });
+			MongoClient.connect(url, function(err, db){
+				assert.equal(null,err);
+				var collection = db.collection('tweets');
+				var cursor = collection.find().limit(Number(latestNum));
+				var tweets = {};
+				cursor.each(function(err, data){
+					if(err) console.log(err);
+					else{
+						if(data!=null){
+							var id= data['_id'];
+							delete data['_id'];
+							delete data['query'];
+							tweets['tweet_'+id]=data;
+						}else{
+							converter.json2csv(tweets,function(err, csv){
+								if(err) console.log(err);
+								csvStream.write(csv);
+								csvStream.end();
+								res.download(csvFile);
+							});
+						}
+					}
+				});
+			});
+		}
+	}, 100);
 });
 
 app.listen(3000, function () {
