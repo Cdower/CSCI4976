@@ -100,7 +100,9 @@
       dataType: 'json',
       data: JSON.stringify({"query":sessionStorage.getItem("query"), "number":sessionStorage.getItem("number")}),
       beforeSend:function(){
+        $('#query-form').hide();
         $('#waitMessage').show();
+        $('#newQuery').show();
       }
     }).done(function(data){
       console.log("Success: " + data);
