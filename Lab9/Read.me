@@ -1,0 +1,17 @@
+Uses NPM:
+  express: easy get, post requests on server
+  twitter: library for twitter api
+  body-parser: middleware for easy json handling
+  fs: write file streams of json, csv, or xml type. check if file exists already.
+  json-2-csv: convert json from mongo to csv
+  mongodb: store tweets in a database
+  assert: required by mongodb
+  js2xmlparser: parse json from mongo to xml
+
+Using what  I learned from lab 7 and prior I built this.
+It better follows how xml and csv work and writes every query to the database .
+Files are then created using the last X values in the database that match the search.
+The program effectively lets the user know what's happening and if they need to wait for anything.
+Intuitively spartan design.
+Download functions no longer need to be called twice or more to work.
+Server makes the webpage wait. 
