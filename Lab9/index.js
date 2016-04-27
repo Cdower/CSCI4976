@@ -49,19 +49,18 @@ function collectTweets(query, number, addtoDB){
 					assert.equal(null, err);
 					db.close();
 				});
-				//console.log("queryComplete: " + queryComplete);
-        return;
+        return true;
   		}
   		if(writeBool){
 				if(tweet){
 					customTweet = {
 						"created_at":tweet["created_at"],
 						"id":tweet['id'],
-						"text":tweet['text'],
+						"text":"'"+tweet['text']+"'",
 						'user_id':tweet['user']['id'],
-						'user_name':tweet['user']['name'],
-						'user_screen_name':tweet['user']['screen_name'],
-						'user_location':tweet['user']['location'],
+						'user_name':"'"+tweet['user']['name']+"'",
+						'user_screen_name':"'"+tweet['user']['screen_name']+"'",
+						'user_location':"'"+tweet['user']['location']+"'",
 						"user_followers_count":tweet['user']['followers_count'],
 						"user_friends_count":tweet['user']['friends_count'],
 						"user_created_at":tweet['user']['created_at'],
@@ -74,14 +73,12 @@ function collectTweets(query, number, addtoDB){
 					}
 				}
 				if(customTweet){
-					////////////
 					if(addtoDB){
 						MongoClient.connect(url, function(err, db) {
 							assert.equal(null, err);
 							insertJSON(db, customTweet);
 						});
 					}
-					///////////
 	  			writeStream.write(JSON.stringify(customTweet) + ',');
 				}else{
 					writeStream.write(JSON.stringify(tweet) + ',');
@@ -93,7 +90,7 @@ function collectTweets(query, number, addtoDB){
   		stream.destroy();
   	});
   });
-  return;
+  //return false;
 }
 
 app.use(bodyParser.json());
@@ -101,7 +98,7 @@ app.get('/', function (req, res) {
   res.sendFile( __dirname + '/index.html');
 });
 
-app.get('/mongoJSON', function(req, res) {
+app.get('/rawMongoJSON', function(req, res) {
 	//Send data from mongo db twitter collection tweets
 	MongoClient.connect(url, function(err, db) {
 		assert.equal(null, err);
@@ -113,7 +110,7 @@ app.get('/mongoJSON', function(req, res) {
 				//db.close();
 			}else if(result.length){
 				res.send(result);
-				console.log("Found: ", result);
+				//console.log("Found: ", result);
 				//db.close();
 			}else{
 				res.send("{[]}");
@@ -124,19 +121,35 @@ app.get('/mongoJSON', function(req, res) {
 	});
 })
 
-app.post("/mongoXML", function(req, res) {
-	xmlFile = req.body.query + '-' + req.body.number + '-tweets.xml'
-	var xmlStream = fs.createWriteStream(xmlFile, { flags : 'w'});
+app.post('/mongoXML', function(req, res) {
+	xmlFile = latestQuery + '-' + latestNum + '-tweets.xml';
+	var xmlStream;
+	try{
+		fs.accessSync(xmlFile, fs.F_OK);
+	 	fs.unlinkSync(xmlFile);
+	 	xmlStream = fs.createWriteStream(xmlFile, { flags : 'w'});
+	} catch(e){
+		xmlStream = fs.createWriteStream(xmlFile, { flags : 'w'});
+	}
 	MongoClient.connect(url, function(err, db) {
 		assert.equal(null, err);
 		var collection = db.collection('tweets');
-		var cursor = collection.find();
-		cursor.each(function(err, tweet) {
+		var cursor = collection.find().limit(Number(latestNum));
+		var tweets = {};
+		cursor.each(function(err, data) {
 			if(err){ console.log(err);}
 			else{
-				if(tweet != null){
-					xmlStream.write(js2xmlparser("tweet", tweet));
-				}else{
+				if(data != null){
+					var id = data["_id"];
+					delete data["_id"];
+					tweets["tweet"+id] = data;
+				}else {
+					var options = {
+						arrayMap: {
+								coordinates: "coordinate"
+						}
+					};
+					xmlStream.write(js2xmlparser("tweets", tweets, options));
 					xmlStream.end();
 					console.log("Sending: ", xmlFile);
 					res.download(xmlFile);
@@ -151,24 +164,17 @@ app.get('/mongoXML', function(req, res) {
 })
 
 app.post('/query', function (req, res) {
-  queryComplete = false;
-	latestQuery = req.body.query;
-	latestNum = req.body.number;
-  console.log(req.body.query);
-  console.log(req.body.number);
-  collectTweets(latestQuery, latestNum, false);
-	//queryComplete = true;
-	console.log("queryComplete: " + queryComplete);
-	res.send(queryComplete);
-});
-
-app.post('/twitterToMongo', function(req, res) {
 	queryComplete = false;
 	latestQuery = req.body.query;
 	latestNum = req.body.number;
-	collectTweets(latestQuery, latestNum, true);
-	console.log("queryComplete for mongo: " + queryComplete);
-	res.send(queryComplete);
+  collectTweets(latestQuery, latestNum, true);
+	var __queryCheck = setInterval(function(){
+		if(queryComplete){
+			clearInterval(__queryCheck);
+			console.log(queryComplete);
+			res.send(queryComplete);
+		}
+	},100);
 });
 
 if(queryComplete){
@@ -187,16 +193,30 @@ app.get('/pullJSON', function (req, res) {
 });
 
 app.get('/pullCSV', function(req, res){
-	if(queryComplete){
-		var fileName = latestQuery + '-' + latestNum + '-tweets.csv';
-		converter.json2csv(customTweet,function (err, csv) {
-	  	if (err) console.log(err);
-			fs.writeFile(fileName, csv, function(err) {
-		    if (err) throw err;
-		    console.log('file saved');
-		  });
-		});
-		res.download(fileName);
+	var csvFile = latestQuery + '-' + latestNum + '-tweets.csv';
+	var path = __dirname + '/' + csvFile;
+	try{
+		fs.accessSync(path, fs.F_OK);
+		console.log(csvFile + " exists");
+		csvStream = fs.createWriteStream(csvFile, { flags:'w' });
+	}catch(e){
+		var __queryCheck = setInterval(function(){
+			if(queryComplete){
+				clearInterval(__queryCheck);
+				csvStream = fs.createWriteStream(csvFile, { flags:'w' });
+				delete data["_id"];
+				converter.json2csv(customTweet,function (err, csv) {
+			  	if (err) console.log(err);
+					fs.writeFile(fileName, csv, function(err) {
+				    if (err) throw err;
+						else {
+							console.log('file saved');
+							res.download(path);
+						}
+				  });
+				});
+			}
+		}, 100);
 	}
 });
 

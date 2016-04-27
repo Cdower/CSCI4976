@@ -19,7 +19,7 @@
    #query{ text-align: left; }
   </style>
   <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+  <script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
   <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 </head>
 <title>Lab 9</title>
@@ -38,14 +38,16 @@
       </form>
       <p id='waitMessage'>Please wait while we gather your data</p>
       <form action='' id='export-form'>
-        <input type="radio" name="return-file" value='JSON' checked> JSON <br>
-        <input type='radio' name='return-file' value='CSV'> CSV
+        <input type="radio" name="return-file" id='JSON' value='JSON' checked> JSON <br>
+        <input type='radio' name='return-file' id='CSV' value='CSV'> CSV <br>
+        <input type="radio" name='return-file' id='XML' value='XML'> XML
         <button id='export-request'>Download</button>
       </form>
       <div id="DBButtons" class col-md-4>
-        <button type="button" id="DBwrite">Export to Mongo</button>
+        <!-- <button type="button" id="DBwrite">Export to Mongo</button> -->
         <button type="button" id="readDB">View Tweets in DB</button>
-        <button type="button" id="xmlFromDB">Download XML</button>
+        <button type='button' id='newQuery'> New Seach </button>
+        <!-- <button type="button" id="xmlFromDB">Download XML</button> -->
       </div>
       <br>
     </div>
@@ -58,24 +60,8 @@
     sessionStorage.setItem("number", $('#numTweets').val());
     $('#export-form').hide();
     $('#waitMessage').hide();
+    $('#newQuery').hide();
   });
-
-///Send request to server for xml file of tweets in DB
-  $("#xmlFromDB").click(function() {
-    sessionStorage.setItem("query", $('#query').val());
-    sessionStorage.setItem("number", $('#numTweets').val());
-    $.post({
-      url:'/mongoXML',
-      type:'POST',
-      contentType:'application/json; charset=utf-8',
-      dataType: 'json',
-      data:JSON.stringify({"query":sessionStorage.getItem("query"), "number":sessionStorage.getItem("number")})
-    }).done(function(data, textStatus, jqXHR) {
-      window.location.replace('/mongoXML');
-    }).always(function() {
-      console.log(data);
-    });
-  })
 
 ///JQuery Code to display tweets on page
   function showTweet (tweet) {
@@ -89,7 +75,7 @@
 
 ///Read MongoDB to display tweets in database
   $("#readDB").click(function() {
-    $.get("/mongoJSON", function(data) {
+    $.get("/rawMongoJSON", function(data) {
       $("#tweets").empty();
       var num = data.length;
       for(var i = 0; i<num;i++){
@@ -97,27 +83,6 @@
       }
     });
     return false;
-  })
-
-///Export tweets from search to database
-  $("#DBwrite").click(function(){
-    sessionStorage.setItem("query", $('#query').val());
-    sessionStorage.setItem("number", $('#numTweets').val());
-    $.ajax({
-      url:'/twitterToMongo',
-      type: 'POST',
-      contentType: 'application/json; charset=utf-8',
-      dataType: 'json',
-      data: JSON.stringify({"query":sessionStorage.getItem("query"), "number":sessionStorage.getItem("number")})
-    }).done(function(data, textStatus, jqXHR){
-      console.log("Success: " + data);
-      $('#export-form').show();
-    }).fail(function(jqXHR, textStatus, errorThrown){
-      console.log("Error: " + errorThrown);
-    }).always(function(){
-      console.log("Done!");
-    });
-    return true;
   })
 
 ///Poles twitter for tweets, when finished displays more options to do something with them
@@ -133,48 +98,107 @@
       type: 'POST',
       contentType: 'application/json; charset=utf-8',
       dataType: 'json',
-      data: JSON.stringify({"query":sessionStorage.getItem("query"), "number":sessionStorage.getItem("number")})
-    }).done(function(data, textStatus, jqXHR){
+      data: JSON.stringify({"query":sessionStorage.getItem("query"), "number":sessionStorage.getItem("number")}),
+      beforeSend:function(){
+        $('#waitMessage').show();
+      }
+    }).done(function(data){
       console.log("Success: " + data);
       $('#export-form').show();
+      $('#waitMessage').hide();
     }).fail(function(jqXHR, textStatus, errorThrown){
       console.log("Error: " + errorThrown);
-    }).always(function(){
-      console.log("Done!");
     });
-    $('#export-form').show();
     return false;
   });
 
-  //var radios = document.getElementsByName('return-file');
-  $('#export-form').submit(function () {
-    //alert("Please wait while we gather data");
-    sessionStorage.setItem("fileType", $('input[name="return-file"]:checked').val());
-    //console.log(sessionStorage.getItem("fileType") );
-    //console.log($('input[name="return-file"]:checked').val() === "CSV");
-    if($('input[name="return-file"]:checked').val() === "JSON"){
-      $.get('/pullJSON');
-      window.location.replace('pullJSON');
+  $('#newQuery').click(function(){
+    $('#export-form').hide();
+    $('#waitMessage').hide();
+    $('#query-form').show();
+  });
+
+  ///Send request to server for xml file of tweets in DB
+  ///dataType is the type SENT
+  ///contentType is the type RECIEVED
+    function getXML(_callback) {
+      sessionStorage.setItem("query", $('#query').val());
+      sessionStorage.setItem("number", $('#numTweets').val());
+      $.post({
+        url:'/mongoXML',
+        type:'POST',
+        contentType:'application/json',
+        dataType: 'xml',
+        data:JSON.stringify({"query":sessionStorage.getItem("query"), "number":sessionStorage.getItem("number")}),
+        success: function(xml){
+          console.log("donezo");
+          window.location.replace('/mongoXML');
+          $('#export-form').show(); //bring it back
+          $('#waitMessage').hide(); //hide it again
+          $('#newQuery').show();//unhide button to change query
+        },
+        error: function(){
+          console.log("failure");
+        }
+      });
+      _callback();
     }
-    if(sessionStorage.getItem("fileType") === 'CSV'){
-      console.log("clicked csv");
-      //$.get('pullCSV')
+
+  $('#export-form').submit(function () {
+    if($('#JSON').is(":checked")){
+     $.ajax({
+       url:'/pullJSON',
+       type:'GET',
+       dataType:'application/json',
+       beforeSend:function(){
+         $("#export-form").hide();
+         $("#waitMessage").show();
+         console.log("/pullJSON");
+        }
+      }).done(function(){
+        console.log("/pullJSON success");
+        window.location.replace('/pullJSON');
+        $('#export-form').show(); //bring it back
+        $('#waitMessage').hide(); //hide it again
+        $('#newQuery').show();//unhide button to change query
+      }).fail(function() {
+        console.log("/pullJSON failure");
+        window.location.replace('/pullJSON');
+        $('#export-form').show(); //bring it back
+        $('#waitMessage').hide(); //hide it again
+        $('#newQuery').show();//unhide button to change query
+      });
+      //window.location.replace('pullJSON');
+    }
+    ///Content type is the type RECIEVED
+    if($('#CSV').is(":checked")){
       $.ajax({
         url:'/pullCSV',
-        type:'GET',
-        dataType:'text/csv'
-      }).done(function(data, textStatus, jqXHR){
+        contentType:'text/csv',
+        beforeSend:function(){
+          console.log("clicked csv");
+          $("#export-form").hide();
+          $("#waitMessage").show();
+        }
+      }).done(function(){
         console.log("csv get request complete");
+        window.location.replace("/pullCSV");
         $('#export-form').show();
         $('#waitMessage').hide();
-        window.location.replace("/pullCSV");
-      }).always(function(data, textStatus, jqXHR){
-        $('#export-form').hide();
-        $('#waitMessage').show();
+      }).fail(function(){
+        alert("Query incomplete, please wait a moment and try again.");
+        $('#export-form').show();
+        $('#waitMessage').hide();
       });
-
+      /**/
     }
-
+    if($('#XML').is(":checked")){
+      getXML(function(){
+        $('#export-form').hide(); //hiding
+        $('#waitMessage').show(); //showing
+        $('#newQuery').hide(); //hide button to change query to prevent weird Db errors
+      });
+    }
     return false;
   });
 </script>
