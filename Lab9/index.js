@@ -97,6 +97,7 @@ app.get('/', function (req, res) {
 
 app.get('/rawMongoJSON', function(req, res) {
 	//Send data from mongo db twitter collection tweets
+	console.log("/rawMongoJSON")
 	MongoClient.connect(url, function(err, db) {
 		assert.equal(null, err);
 		var collection = db.collection('tweets');
@@ -122,6 +123,7 @@ app.post('/mongoXML', function(req, res) {
 	 	fs.unlinkSync(xmlFile);
 	 	xmlStream = fs.createWriteStream(xmlFile, { flags : 'w'});
 	} catch(e){
+		console.log('mongoXM: ' + e);
 		xmlStream = fs.createWriteStream(xmlFile, { flags : 'w'});
 	}
 	MongoClient.connect(url, function(err, db) {
@@ -184,6 +186,7 @@ app.get('/pullJSON', function (req, res) {
 		fs.unlinkSync(jsonFile);
 		jsonStream = fs.createWriteStream(jsonFile, { flags : 'w' });
 	} catch(e){
+		console.log('pullJSON: ' + e);
 		jsonStream = fs.createWriteStream(jsonFile, { flags : 'w' });
 	}
 	var __queryCheck = setInterval(function(){
@@ -217,15 +220,14 @@ app.get('/pullJSON', function (req, res) {
 app.get('/pullCSV', function(req, res){
 	var csvFile = latestQuery + '-' + latestNum + '-tweets.csv';
 	var path = __dirname + '\\' + csvFile;
-	console.log(latestNum, latestQuery, csvFile, path);
+	//console.log(latestNum, latestQuery, csvFile, path);
 	var csvStream;
 	try{
 		fs.accessSync(xmlFile, fs.F_OK);
 	 	fs.unlinkSync(xmlFile);
-		console.log(csvFile + " exists");
 		csvStream = fs.createWriteStream(path, { flags : 'w' });
 	}catch(e){
-		console.log(e);
+		console.log('pullCSV: ' + e);
 		csvStream = fs.createWriteStream(path, { flags : 'w' });
 	}
 	//csvStream = fs.createWriteStream(path, { flags : 'w' });

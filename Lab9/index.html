@@ -4,13 +4,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body{ background-color: lightgray !important; }
-    #mainMenu { margin-top: 7%; }
     #tweets { margin-top: 0%; }
    .center { margin: auto; width: 90%; padding: 10px; }
    .content li{ display: inline; list-style-type: none; padding-right: 20px; }
    .profileImg { margin:auto; -moz-border-radius: 10px; border-radius: 10px; }
    .name{ font-size: larger; font-weight: bold; }
    .tweet{ display: none; }
+   .toRemove{ box-shadow: 3px 3px 5px black; -moz-border-radius: 10px; border-radius: 10px; margin-top: 1%; }
    .post{ box-shadow: 3px 3px 5px black; -moz-border-radius: 10px; border-radius: 10px; margin-top: 1%; }
    .col-md-4{ background-color: white !important; border-radius: 5px; margin-left: 5%; margin-right: 5%; box-shadow: 10px 10px 5px; }
    #DBButtons{ margin: auto; text-align: center; }
@@ -49,7 +49,7 @@
         <button type='button' id='newQuery'> New Seach </button>
         <!-- <button type="button" id="xmlFromDB">Download XML</button> -->
       </div>
-      <br>
+    </br>
     </div>
   </div>
   <div class='row container-fluid' id="tweets"/>
@@ -64,24 +64,73 @@
   });
 
 ///JQuery Code to display tweets on page
-  function showTweet (tweet) {
-  	$("#tweets").prepend('<div class="post col-md-4 col-md-offset-4">' + '<ul class=content>' +
+  function newTweet (tweet) {
+    var hashtagPattern = /(^|\s)#(\w*[a-zA-Z_]+\w*)/gim;
+    var mentionsPattern = /(^|\s)\@(\w*[a-zA-Z_]+\w*)/gim;
+    var uText = tweet['text'];
+    var uScrnName = ('@' + tweet['user_screen_name']);
+    uText = uText.replace(hashtagPattern, '$1<a href="https://twitter.com/search?q=%23$2"' + '>#$2</a>');
+    uText = uText.replace(mentionsPattern, '$1<a href="https://twitter.com/$2"' + '>@$2</a>');
+    uScrnName = uScrnName.replace(mentionsPattern, '$1<a href="https://twitter.com/$2"' + '>@$2</a>');
+  	$("#tweets").append('<div id='+tweet['iterator']+' class="post col-md-4 col-md-offset-4">' + '<ul class=content>' +
   		'<li><img class=profileImg src="'+tweet["user_profile_image_url"]+'"></img></li>' +
   		'<li class=name>'+ tweet["user_name"] +'</li>' +
-  		'<li> <a href=' + tweet["user_url"] + '>'+ '@' + tweet["user_screen_name"] +'</a></li>' +
-  		'<li><div>'+ tweet["text"] +'</div></li>' +
+  		'<li>' + uScrnName +'</li>' +
+  		'<li><div>'+ uText +'</div></li>' +
   		'</ul></div>');
+      console.log($(tweet['iterator']));
+      $('.post').delay(5000).slideUp('slow');//#'+tweet['iterator']
+      $('.post#'+tweet['iterator']).addClass("toRemove");
+      $('.toRemove#'+tweet['iterator']).removeClass("post");
+      //callback();
+  }
+
+  //takemultiplestweets at once and do newTweet
+  function multiTweets (tweets){
+    var tweet;
+    for(var i=0;i<tweets.length;i++){
+      tweet=tweets[i];
+      tweet['iterator']=i;
+      newTweet(tweet);
+      /*$('.post#'+i).slideUp('slow', function(){
+        $('.post#'+i).remove();
+        newTweet(tweet);
+      });*/
+    }
   }
 
 ///Read MongoDB to display tweets in database
   $("#readDB").click(function() {
     $.get("/rawMongoJSON", function(data) {
-      $("#tweets").empty();
       var num = data.length;
-      for(var i = 0; i<num;i++){
-        showTweet(data[i]);
-      }
+      var k = 0;
+      var sliceEnd = k+5;
+      multiTweets(data.slice(k, sliceEnd));
+      k+=5; sliceEnd+=5;
+      var __tweetInterval = setInterval(function(){
+        if(sliceEnd>num){ clearInterval(__tweetInterval); }
+        else {
+          console.log(k);
+          if(sliceEnd>num){
+            sliceEnd=num;
+          }
+          $('#tweets').children('.toRemove').each(function(){
+            if($(this).is(':hidden')){
+              $(this).remove();
+            }
+          });
+          multiTweets(data.slice(k,sliceEnd));
+          k+=5; sliceEnd+=5;
+          if(sliceEnd>num){ sliceEnd=num; }
+        }
+      }, 5000);
+      //for(var i = 0; i<num;i++){ newTweet(data[i]); }
     });
+    /*$.ajax({
+      url:"/rawMongoJSON",
+      type:"GET",
+      data:{"query":$('#query').val()}
+    })*/
     return false;
   })
 
